@@ -32,10 +32,8 @@ Our best single-head model achieves 97.28\% validation accuracy; the 5-seed FroF
 domain generalisation, histopathology, foundation models, feature-space augmentation
 \end{keywords}
 
-% ═══════════════════════════════════════════════════════════
 \section{Introduction}
 \label{sec:intro}
-% ═══════════════════════════════════════════════════════════
 
 Whole-slide image (WSI) analysis is a cornerstone of computational pathology, yet models trained in one clinical centre routinely fail when deployed at another.
 The root cause is \emph{domain shift}: patches acquired across hospitals differ due to variations in staining, scanner hardware, and tissue preparation~\citep{tellez2019quantifying}.
@@ -46,10 +44,8 @@ We explore domain generalisation via a histopathology-specific backbone (Phikon~
 A systematic ablation reveals that all additional techniques introduce overfitting; the best model is simply Phikon with a linear head.
 Building on this insight, we investigate \emph{feature-space augmentation}~\citep{bar2024frofa} and \emph{multi-seed ensembling}~\citep{wortsman2022model} as alternatives that operate in the frozen embedding space.
 
-% ═══════════════════════════════════════════════════════════
 \section{Method}
 \label{sec:method}
-% ═══════════════════════════════════════════════════════════
 
 \subsection{Backbone Selection}
 
@@ -60,10 +56,10 @@ We also tested \textbf{Phikon-v2} (ViT-L, 1024-dim, 460M tiles) but it underperf
 
 \subsection{Classification Head}
 
-We compare a \textbf{linear probe} $\hat{y} = \sigma(\mathbf{w}^\top \mathbf{f} + b)$ and a \textbf{two-layer MLP} $\hat{y} = \sigma(W_2\,\text{ReLU}(W_1 \mathbf{f}))$ with hidden dim 128.
+We compare a \textbf{linear probe} $\hat{y} = \sigma(\mathbf{w}^\top \mathbf{f} + b)$ and a \textbf{two-layer MLP} $\hat{y} = \sigma(W_2\,\text{ReLU}(W_1 \mathbf{f}))$ with hidden dim~128.
 The MLP achieves 97.40\% vs.\ 96.91\% for the linear probe in a single-seed setting, but every additional component (CORAL, HED, TTA) degrades it (\tableref{tab:ablation}), suggesting the MLP is at the edge of overfitting.
 With AdamW regularisation and multi-seed ensembling, the linear head closes this gap while being more robust.
-\citet{kumar2022finetuning} provide theoretical backing: linear probing preserves pretrained OOD robustness, outperforming fine-tuning by $\sim$7~pp on distribution-shift benchmarks.
+\citet{kumar2022finetuning} provide theoretical backing: linear probing preserves pretrained OOD robustness, outperforming fine-tuning by ${\sim}7$~pp on distribution-shift benchmarks.
 
 \subsection{Feature-Space Augmentation (FroFA)}
 \label{sec:frofa}
@@ -82,8 +78,10 @@ Validation uses clean features.
 \subsection{Multi-Seed Ensemble}
 \label{sec:ensemble}
 
-Training a linear head takes $\sim$20\,s on cached features, so we train $N{=}5$ heads with different seeds and average sigmoid outputs~\citep{wortsman2022model}:
-$\hat{p}(\mathbf{x}) = \frac{1}{NK} \sum_{i=1}^{N} \sum_{j=1}^{K} h_i(\text{backbone}(v_j(\mathbf{x})))$
+Training a linear head takes ${\sim}20$\,s on cached features, so we train $N{=}5$ heads with different seeds and average their sigmoid outputs~\citep{wortsman2022model}:
+\[
+\hat{p}(\mathbf{x}) \;=\; \tfrac{1}{NK} \sum\nolimits_{i,j}\, h_i\!\bigl(\mathrm{backbone}(v_j(\mathbf{x}))\bigr)
+\]
 where $v_j$ are optional TTA views.
 
 \subsection{Discarded Components}
@@ -95,12 +93,10 @@ where $v_j$ are optional TTA views.
 \textbf{Label smoothing} ($\epsilon{=}0.1$): $-0.5$~pp.
 All degrade performance for the reasons analysed in Section~\ref{sec:overfitting}.
 
-% ═══════════════════════════════════════════════════════════
 \section{Results}
 \label{sec:results}
-% ═══════════════════════════════════════════════════════════
 
-We use the centre-held-out validation (train on 0, 3, 4; validate on 1). Early stopping is on validation loss; no validation data is used for hyperparameter search.
+We use the centre-held-out validation (train on 0, 3, 4; validate on~1). Early stopping is on validation loss; no validation data is used for hyperparameter search.
 
 \begin{table}[htbp]
 \floatconts{tab:ablation}
@@ -150,7 +146,7 @@ Mean $\pm$ std & 97.01 $\pm$ 0.10 & \textbf{97.11} $\pm$ 0.09 \\
 \end{table}
 
 FroFA yields a consistent $+0.10$~pp mean improvement with lower variance.
-Crucially, FroFA acts as a regulariser: baseline heads peak at epoch 1--4 and early-stop by epoch 11--14, while FroFA heads peak at epoch 10--34 and train 3$\times$ longer (\figureref{fig:curves}), confirming that feature-space perturbations generate genuinely novel training signal rather than near-duplicate embeddings.
+Crucially, FroFA acts as a regulariser: baseline heads peak at epoch 1--4 and early-stop by epoch 11--14, while FroFA heads peak at epoch 10--34 and train $3\times$ longer (\figureref{fig:curves}), confirming that feature-space perturbations generate genuinely novel training signal rather than near-duplicate embeddings.
 
 \begin{figure}[htbp]
 \floatconts{fig:curves}
@@ -158,10 +154,8 @@ Crucially, FroFA acts as a regulariser: baseline heads peak at epoch 1--4 and ea
 {\includegraphics[width=\textwidth]{figures/fig_training_curves.pdf}}
 \end{figure}
 
-% ═══════════════════════════════════════════════════════════
 \section{Overfitting Analysis}
 \label{sec:overfitting}
-% ═══════════════════════════════════════════════════════════
 
 Every technique added on top of Phikon + MLP decreases validation accuracy (\tableref{tab:ablation}).
 The root cause is twofold.
@@ -171,27 +165,23 @@ CORAL compounds this by aligning covariance structures across the artificially i
 
 FroFA addresses this directly: mixup, dropout, and noise in the 768-dimensional feature space generate genuinely novel training points without the redundancy of pixel augmentation~\citep{bar2024frofa, lim2022noisy}.
 
-% ═══════════════════════════════════════════════════════════
 \section{Discussion and Future Work}
 \label{sec:discussion}
-% ═══════════════════════════════════════════════════════════
 
 \textbf{The backbone dominates.}
-Switching from DINOv2 to Phikon gives $+8.62$~pp, dwarfing all head-level interventions.
+Switching from DINOv2 to Phikon gives $+8.62$~pp, dwarfing all head-level interventions, consistent with benchmarks showing domain-specific pre-training dominates OOD performance~\citep{nature2025benchmark}.
 
 \textbf{Less is more.}
 Every domain-adaptation technique degraded accuracy.
-This aligns with \citet{kumar2022finetuning}: linear probing preserves pretrained features, and foundation models already encode stain invariance.
+This aligns with~\citet{kumar2022finetuning}: linear probing preserves pretrained features, and foundation models already encode stain invariance.
 
 \textbf{Feature-space augmentation.}
-FroFA~\citep{bar2024frofa} gains diminish with data scale ($+3.9$\% few-shot, $\sim$$+0.1$\% at $\sim$100K samples), consistent with our results.
+FroFA~\citep{bar2024frofa} gains diminish with scale ($+3.9$\% few-shot, ${\sim}+0.1$\% at ${\sim}$100K), consistent with our results.
 
-\textbf{Limitations and future work.}
-(i)~UNI and Virchow2 outperform Phikon on multi-task benchmarks~\citep{nature2025benchmark}; a multi-backbone ensemble would likely improve further.
+\textbf{Future work.}
+(i)~UNI and Virchow2 outperform Phikon on multi-task benchmarks~\citep{nature2025benchmark}; a multi-backbone ensemble would improve further.
 (ii)~LP-FT~\citep{kumar2022finetuning} could unlock backbone adaptation while preserving OOD robustness.
-(iii)~Test-time adaptation via entropy minimisation (TENT,~\citet{wang2021tent}) could be applied to the backbone.
-
-% ═══════════════════════════════════════════════════════════
+(iii)~TENT~\citep{wang2021tent} could adapt batch-normalisation statistics at test time.
 
 \bibliography{references}
 
