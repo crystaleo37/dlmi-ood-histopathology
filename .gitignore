@@ -1,0 +1,15 @@
+data/
+*.h5
+*.pt
+*.pth
+__pycache__/
+.ipynb_checkpoints/
+.claude/
+
+# latex build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
